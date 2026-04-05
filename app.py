@@ -1,9 +1,7 @@
 import streamlit as st
 import numpy as np
 
-# --- 1. FULL DATA TABLES ---
-
-# Upper Lake Level (RL) and Content (MCM)
+# --- 1. FULL DATA TABLES (Upper Lake) ---
 u_level_data = np.array([
     90.000, 90.025, 90.050, 90.075, 90.100, 90.125, 90.150, 90.175, 90.200, 90.225,
     90.250, 90.275, 90.300, 90.325, 90.350, 90.375, 90.400, 90.425, 90.450, 90.475,
@@ -52,85 +50,86 @@ u_content_data = np.array([
     9.081
 ])
 
-# Lower Reservoir Level (RL) and Content (MCM)
+# --- 2. FULL DATA TABLES (Lower Reservoir) ---
 l_level_data = np.array([
-    89.000, 89.125, 89.250, 89.375, 89.500, 89.625, 89.750, 90.000, 90.063, 90.125, 
-    90.188, 90.250, 90.313, 90.375, 90.438, 90.500, 90.563, 90.625, 90.688, 90.750, 
-    90.813, 90.875, 90.938, 91.000, 91.063, 91.125, 91.188, 91.250, 91.313, 91.375, 
-    91.438, 91.500, 91.563, 91.625, 91.688, 91.750, 91.813, 91.875, 91.938, 92.000, 
-    92.063, 92.125, 92.188, 92.250, 92.313, 92.375, 92.438, 92.500, 92.563, 92.625, 
-    92.688, 92.750, 92.813, 92.875, 92.938, 93.000, 93.063, 93.125, 93.188, 93.250, 
-    93.313, 93.375, 93.438, 93.500, 93.563, 93.625, 93.688, 93.750, 93.813, 93.875, 
-    93.938, 94.000, 94.063, 94.125, 94.188, 94.250, 94.313, 94.375, 94.438, 94.500, 
+    89.000, 89.125, 89.250, 89.375, 89.500, 89.625, 89.750, 90.000, 90.063, 90.125,
+    90.188, 90.250, 90.313, 90.375, 90.438, 90.500, 90.563, 90.625, 90.688, 90.750,
+    90.813, 90.875, 90.938, 91.000, 91.063, 91.125, 91.188, 91.250, 91.313, 91.375,
+    91.438, 91.500, 91.563, 91.625, 91.688, 91.750, 91.813, 91.875, 91.938, 92.000,
+    92.063, 92.125, 92.188, 92.250, 92.313, 92.375, 92.438, 92.500, 92.563, 92.625,
+    92.688, 92.750, 92.813, 92.875, 92.938, 93.000, 93.063, 93.125, 93.188, 93.250,
+    93.313, 93.375, 93.438, 93.500, 93.563, 93.625, 93.688, 93.750, 93.813, 93.875,
+    93.938, 94.000, 94.063, 94.125, 94.188, 94.250, 94.313, 94.375, 94.438, 94.500,
     94.563, 94.625, 94.688, 94.750, 94.813, 94.875, 94.938, 95.000
 ])
 
 l_content_data = np.array([
-    2.870, 2.923, 2.975, 3.028, 3.080, 3.133, 3.185, 3.290, 3.304, 3.318, 
-    3.331, 3.345, 3.359, 3.373, 3.386, 3.400, 3.430, 3.460, 3.490, 3.520, 
-    3.550, 3.580, 3.610, 3.640, 3.671, 3.703, 3.734, 3.765, 3.796, 3.828, 
-    3.859, 3.890, 3.906, 3.923, 3.939, 3.955, 3.971, 3.988, 4.004, 4.020, 
-    4.049, 4.078, 4.106, 4.135, 4.164, 4.193, 4.221, 4.250, 4.279, 4.308, 
-    4.336, 4.365, 4.394, 4.423, 4.451, 4.480, 4.503, 4.525, 4.548, 4.570, 
-    4.593, 4.615, 4.638, 4.660, 4.683, 4.705, 4.728, 4.750, 4.773, 4.795, 
-    4.818, 4.840, 4.866, 4.893, 4.919, 4.945, 4.971, 4.998, 5.024, 5.050, 
+    2.870, 2.923, 2.975, 3.028, 3.080, 3.133, 3.185, 3.290, 3.304, 3.318,
+    3.331, 3.345, 3.359, 3.373, 3.386, 3.400, 3.430, 3.460, 3.490, 3.520,
+    3.550, 3.580, 3.610, 3.640, 3.671, 3.703, 3.734, 3.765, 3.796, 3.828,
+    3.859, 3.890, 3.906, 3.923, 3.939, 3.955, 3.971, 3.988, 4.004, 4.020,
+    4.049, 4.078, 4.106, 4.135, 4.164, 4.193, 4.221, 4.250, 4.279, 4.308,
+    4.336, 4.365, 4.394, 4.423, 4.451, 4.480, 4.503, 4.525, 4.548, 4.570,
+    4.593, 4.615, 4.638, 4.660, 4.683, 4.705, 4.728, 4.750, 4.773, 4.795,
+    4.818, 4.840, 4.866, 4.893, 4.919, 4.945, 4.971, 4.998, 5.024, 5.050,
     5.161, 5.273, 5.384, 5.495, 5.606, 5.718, 5.829, 5.940
 ])
 
-# --- 2. INTERFACE ---
-st.set_page_config(page_title="Plant Operation Tool", layout="centered")
-st.title("⚡ Integrated Reservoir Operations")
+# --- 3. STREAMLIT UI ---
+st.set_page_config(page_title="Hydro Ops Calculator", layout="centered")
+st.title("🌊 Reservoir Shift Calculator")
 
+# Sidebar for logic settings
 with st.sidebar:
-    st.header("Gate Configuration")
-    gate_is_open = st.toggle("Interconnecting Gate Open?", value=False)
-    hours_open = st.number_input("Hours Open during Shift", min_value=0.0, value=1.0, step=0.5)
+    st.header("Gate Status")
+    gate_open = st.checkbox("Interconnecting Gate Open?", value=False)
+    gate_duration = st.number_input("Hours Open", min_value=0.0, value=1.0, step=0.5)
     st.divider()
-    st.info("Uses Nearest-Value matching for RL levels.")
+    st.markdown("**Logic:** Nearest Value matching used for RL table.")
 
-# Input Layout
+# Input fields
 col1, col2 = st.columns(2)
 with col1:
-    u_lvl = st.number_input("Upper Lake Level (m)", value=94.400, format="%.3f")
+    u_level = st.number_input("Upper Lake Level (m)", value=94.450, format="%.3f")
     gen_mus = st.number_input("Generation (MUS)", value=0.120, format="%.3f")
 with col2:
-    l_lvl = st.number_input("Lower Reservoir Level (m)", value=90.000, format="%.3f")
+    l_level = st.number_input("Lower Reservoir Level (m)", value=90.000, format="%.3f")
 
-# --- 3. CALCULATION ---
-if st.button("Run End-of-Shift Calc", type="primary"):
-    # A. Initial Upper Content (Nearest)
-    idx_u = (np.abs(u_level_data - u_lvl)).argmin()
-    initial_u_mcm = u_content_data[idx_u]
-    
-    # B. Generation Volume
-    gen_discharge = gen_mus * 0.820
-    
-    # C. Gate Discharge (Head-Dependent)
-    gate_mcm_loss = 0.0
-    if gate_is_open:
-        head_diff = u_lvl - l_lvl
-        # Logic: High diff (>=3m) = 0.185 MCM/hr | Low diff (<3m) = 0.160 MCM/hr
-        flow_rate = 0.185 if head_diff >= 3.0 else 0.160
-        gate_mcm_loss = flow_rate * hours_open
-    
-    # D. Final Content Result
-    final_u_mcm = initial_u_mcm + gen_discharge - gate_mcm_loss
-    
-    # E. Find Final Level (Nearest)
-    if final_u_mcm > 9.081:
-        final_u_level = 95.000
-        st.warning("⚠️ Maximum Lake Capacity (9.081 MCM) exceeded. Level set to 95.000 m.")
+# --- 4. CALCULATION ---
+if st.button("Calculate Final Level", type="primary"):
+    # Initial Content (Nearest RL)
+    idx_start = (np.abs(u_level_data - u_level)).argmin()
+    initial_mcm = u_content_data[idx_start]
+
+    # Generation Water
+    gen_water = gen_mus * 0.82
+
+    # Gate Discharge logic
+    gate_loss = 0.0
+    if gate_open:
+        diff = u_level - l_level
+        # Head-dependent flow (0.15 - 0.20 range)
+        # Assuming high diff (>3m) uses 0.185, low diff uses 0.160
+        flow_rate = 0.185 if diff >= 3.0 else 0.160
+        gate_loss = flow_rate * gate_duration
+
+    # Final Content Result
+    final_mcm = initial_mcm + gen_water - gate_loss
+
+    # Find Final Level (Nearest Content)
+    if final_mcm > 9.081:
+        final_rl = 95.000
     else:
-        idx_f = (np.abs(u_content_data - final_u_mcm)).argmin()
-        final_u_level = u_level_data[idx_f]
+        idx_end = (np.abs(u_content_data - final_mcm)).argmin()
+        final_rl = u_level_data[idx_end]
 
-    # --- 4. OUTPUT ---
+    # --- 5. RESULTS DISPLAY ---
     st.divider()
-    st.metric("Final Upper Lake RL", f"{final_u_level:.3f} m")
+    st.metric(label="Final Lake Level", value=f"{final_rl:.3f} m")
     
-    with st.expander("Calculation Details"):
-        st.write(f"**Starting Content:** {initial_u_mcm:.3f} MCM")
-        st.write(f"**+ Gen Discharge:** {gen_discharge:.3f} MCM")
-        if gate_is_open:
-            st.write(f"**- Gate Loss:** {gate_mcm_loss:.3f} MCM")
-        st.write(f"**Final Total Content:** {final_u_mcm:.3f} MCM")
+    with st.expander("Show detailed data"):
+        st.write(f"Starting Content: {initial_mcm:.3f} MCM")
+        st.write(f"Added Gen Water: {gen_water:.3f} MCM")
+        if gate_open:
+            st.write(f"Gate Water Loss: {gate_loss:.3f} MCM")
+        st.write(f"Total New Content: {final_mcm:.3f} MCM")
