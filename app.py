@@ -44,8 +44,21 @@ if st.button("Get Final Lake Level", type="primary"):
     gate_vol = 0.0
     if gate_is_open:
         head_diff = u_level_in - l_level_in
-        # Head-dependent flow (0.13 - 0.17 range)
-        rate = 0.185 if head_diff >= 3.0 else 0.160
+            # Gate Calculation (Based on 3-tier head-dependent rules)
+    gate_vol = 0.0
+    if gate_is_open:
+        head_diff = u_level_in - l_level_in
+        
+        # Define flow rate based on head tiers
+        if head_diff > 3.0:
+            rate = 0.17  # MCM/hr for head > 3m
+        elif 2.0 <= head_diff <= 3.0:
+            rate = 0.15  # MCM/hr for head between 2m and 3m
+        elif 1.5 <= head_diff < 2.0:
+            rate = 0.12  # MCM/hr for head between 1.5m and 2m
+        else:
+            rate = 0.08  # Fallback for head < 1.5m
+            
         gate_vol = rate * hours_open
 
     # Final Total
