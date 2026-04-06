@@ -44,7 +44,7 @@ if st.button("Get Final Lake Level", type="primary"):
     gate_vol = 0.0
     if gate_is_open:
         head_diff = u_level_in - l_level_in
-        # Head-dependent flow (0.15 - 0.20 range)
+        # Head-dependent flow (0.13 - 0.17 range)
         rate = 0.185 if head_diff >= 3.0 else 0.160
         gate_vol = rate * hours_open
 
