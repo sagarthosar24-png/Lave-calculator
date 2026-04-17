@@ -1,107 +1,134 @@
 import streamlit as st
 import numpy as np
 
-# --- 1. DATASETS (Merged & Unified) ---
-U_LEVEL_DATA = np.array([90.000, 90.025, 90.050, 90.075, 90.100, 90.125, 90.150, 90.175, 90.200, 90.225, 90.250, 90.275, 90.300, 90.325, 90.350, 90.375, 90.400, 90.425, 90.450, 90.475, 90.500, 90.525, 90.550, 90.575, 90.600, 90.625, 90.650, 90.675, 90.700, 90.725, 90.750, 90.775, 90.800, 90.825, 90.850, 90.875, 90.900, 90.925, 90.950, 90.975, 91.000, 91.025, 91.050, 91.075, 91.100, 91.125, 91.150, 91.175, 91.200, 91.225, 91.250, 91.275, 91.300, 91.325, 91.350, 91.375, 91.400, 91.425, 91.450, 91.475, 91.500, 91.525, 91.550, 91.575, 91.600, 91.625, 91.650, 91.675, 91.700, 91.725, 91.750, 91.775, 91.800, 91.825, 91.850, 91.875, 91.900, 91.925, 91.950, 91.975, 92.000, 92.025, 92.050, 92.075, 92.100, 92.125, 92.150, 92.175, 92.200, 92.225, 92.250, 92.275, 92.300, 92.325, 92.350, 92.375, 92.400, 92.425, 92.450, 92.475, 92.500, 92.525, 92.550, 92.575, 92.600, 92.625, 92.650, 92.675, 92.700, 92.725, 92.750, 92.775, 92.800, 92.825, 92.850, 92.875, 92.900, 92.925, 92.950, 92.975, 93.000, 93.025, 93.050, 93.075, 93.100, 93.125, 93.150, 93.175, 93.200, 93.225, 93.250, 93.275, 93.300, 93.325, 93.350, 93.375, 93.400, 93.425, 93.450, 93.475, 93.500, 93.525, 93.550, 93.575, 93.600, 93.625, 93.650, 93.675, 93.700, 93.725, 93.750, 93.775, 93.800, 93.825, 93.850, 93.875, 93.900, 93.925, 93.950, 93.975, 94.000, 94.025, 94.050, 94.075, 94.100, 94.125, 94.150, 94.175, 94.200, 94.225, 94.250, 94.275, 94.300, 94.325, 94.350, 94.375, 94.400, 94.425, 94.450, 94.475, 94.500, 94.525, 94.550, 94.575, 94.600, 94.625, 94.650, 94.675, 94.700, 94.725, 94.750, 94.775, 94.800, 94.825, 94.850, 94.875, 94.900, 94.925, 94.950, 94.975, 95.000])
-U_CONTENT_DATA = np.array([4.336, 4.354, 4.371, 4.389, 4.406, 4.424, 4.441, 4.459, 4.476, 4.494, 4.511, 4.529, 4.546, 4.564, 4.581, 4.599, 4.616, 4.634, 4.651, 4.669, 4.686, 4.704, 4.721, 4.739, 4.756, 4.774, 4.791, 4.809, 4.826, 4.844, 4.861, 4.879, 4.896, 4.914, 4.931, 4.949, 4.966, 4.984, 5.001, 5.019, 5.036, 5.054, 5.071, 5.089, 5.106, 5.124, 5.141, 5.159, 5.176, 5.194, 5.211, 5.229, 5.246, 5.264, 5.281, 5.299, 5.316, 5.334, 5.351, 5.369, 5.386, 5.404, 5.421, 5.439, 5.456, 5.474, 5.491, 5.509, 5.526, 5.544, 5.561, 5.579, 5.596, 5.614, 5.631, 5.649, 5.666, 5.684, 5.701, 5.719, 5.736, 5.756, 5.776, 5.796, 5.816, 5.836, 5.856, 5.876, 5.896, 5.916, 5.936, 5.956, 5.976, 5.997, 6.017, 6.037, 6.057, 6.077, 6.097, 6.117, 6.137, 6.157, 6.177, 6.197, 6.217, 6.237, 6.257, 6.278, 6.298, 6.318, 6.338, 6.354, 6.370, 6.390, 6.410, 6.434, 6.458, 6.478, 6.498, 6.519, 6.539, 6.559, 6.579, 6.599, 6.619, 6.639, 6.659, 6.679, 6.699, 6.719, 6.739, 6.759, 6.779, 6.800, 6.820, 6.840, 6.860, 6.880, 6.900, 6.920, 6.940, 6.960, 6.980, 7.000, 7.020, 7.040, 7.060, 7.081, 7.101, 7.121, 7.141, 7.161, 7.181, 7.201, 7.221, 7.241, 7.261, 7.281, 7.301, 7.322, 7.342, 7.368, 7.394, 7.411, 7.427, 7.448, 7.469, 7.491, 7.512, 7.524, 7.535, 7.596, 7.657, 7.708, 7.759, 7.811, 7.862, 7.913, 7.964, 8.016, 8.067, 8.118, 8.169, 8.220, 8.271, 8.323, 8.374, 8.425, 8.476, 8.528, 8.579, 8.630, 8.681, 8.733, 8.785, 8.836, 8.886, 8.937, 8.988, 9.035, 9.081])
+# --- 1. SHARED DATASETS (BTRP & RAWALJE) ---
+U_DATA = { # BTRP DAM
+    90.000: 4.336, 90.025: 4.354, 90.050: 4.371, 90.075: 4.389, 90.100: 4.406,
+    90.125: 4.424, 90.150: 4.441, 90.175: 4.459, 90.200: 4.476, 90.225: 4.494,
+    90.250: 4.511, 90.275: 4.529, 90.300: 4.546, 90.325: 4.564, 90.350: 4.581,
+    90.375: 4.599, 90.400: 4.616, 90.425: 4.634, 90.450: 4.651, 90.475: 4.669,
+    90.500: 4.686, 90.525: 4.704, 90.550: 4.721, 90.575: 4.739, 90.600: 4.756,
+    90.625: 4.774, 90.650: 4.791, 90.675: 4.809, 90.700: 4.826, 90.725: 4.844,
+    90.750: 4.861, 90.775: 4.879, 90.800: 4.896, 90.825: 4.914, 90.850: 4.931,
+    90.875: 4.949, 90.900: 4.966, 90.925: 4.984, 90.950: 5.001, 90.975: 5.019,
+    91.000: 5.036, 91.025: 5.054, 91.125: 5.124, 91.250: 5.211, 91.375: 5.299,
+    91.500: 5.386, 91.625: 5.474, 91.750: 5.561, 91.875: 5.649, 92.000: 5.736,
+    92.250: 5.936, 92.500: 6.137, 92.750: 6.338, 93.000: 6.539, 93.250: 6.739,
+    93.500: 6.940, 93.750: 7.141, 94.000: 7.342, 94.250: 7.535, 94.400: 7.862,
+    94.500: 8.067, 94.750: 8.579, 95.000: 9.081
+}
 
-L_LEVEL_DATA = np.array([89.000, 89.125, 89.250, 89.375, 89.500, 89.625, 89.750, 90.000, 90.063, 90.125, 90.188, 90.250, 90.313, 90.375, 90.438, 90.500, 90.563, 90.625, 90.688, 90.750, 90.813, 90.875, 90.938, 91.000, 91.063, 91.125, 91.188, 91.250, 91.313, 91.375, 91.438, 91.500, 91.563, 91.625, 91.688, 91.750, 91.813, 91.875, 91.938, 92.000, 92.063, 92.125, 92.188, 92.250, 92.313, 92.375, 92.438, 92.500, 92.563, 92.625, 92.688, 92.750, 92.813, 92.875, 92.938, 93.000, 93.063, 93.125, 93.188, 93.250, 93.313, 93.375, 93.438, 93.500, 93.563, 93.625, 93.688, 93.750, 93.813, 93.875, 93.938, 94.000, 94.063, 94.125, 94.188, 94.250, 94.313, 94.375, 94.438, 94.500, 94.563, 94.625, 94.688, 94.750, 94.813, 94.875, 94.938, 95.000])
-L_CONTENT_DATA = np.array([2.870, 2.923, 2.975, 3.028, 3.080, 3.133, 3.185, 3.290, 3.304, 3.318, 3.331, 3.345, 3.359, 3.373, 3.386, 3.400, 3.430, 3.460, 3.490, 3.520, 3.550, 3.580, 3.610, 3.640, 3.671, 3.703, 3.734, 3.765, 3.796, 3.828, 3.859, 3.890, 3.906, 3.923, 3.939, 3.955, 3.971, 3.988, 4.004, 4.020, 4.049, 4.078, 4.106, 4.135, 4.164, 4.193, 4.221, 4.250, 4.279, 4.308, 4.336, 4.365, 4.394, 4.423, 4.451, 4.480, 4.503, 4.525, 4.548, 4.570, 4.593, 4.615, 4.638, 4.660, 4.683, 4.705, 4.728, 4.750, 4.773, 4.795, 4.818, 4.840, 4.866, 4.893, 4.919, 4.945, 4.971, 4.998, 5.024, 5.050, 5.161, 5.273, 5.384, 5.495, 5.606, 5.718, 5.829, 5.940])
+L_DATA = { # RAWALJE FOREBAY
+    89.000: 2.870, 89.250: 2.975, 89.500: 3.080, 89.750: 3.185, 90.000: 3.290,
+    90.250: 3.345, 90.500: 3.400, 90.750: 3.520, 91.000: 3.640, 91.250: 3.765,
+    91.500: 3.890, 91.750: 3.955, 92.000: 4.020, 92.250: 4.135, 92.500: 4.250,
+    92.750: 4.365, 93.000: 4.480, 93.250: 4.570, 93.500: 4.660, 93.750: 4.750,
+    94.000: 4.840, 94.250: 4.945, 94.500: 5.050, 94.750: 5.495, 95.000: 5.940
+}
 
-# --- 2. SHARED HELPERS ---
-def get_nearest_val(lookup_val, data_array, result_array):
-    idx = (np.abs(data_array - lookup_val)).argmin()
-    return result_array[idx], data_array[idx]
+# --- 2. CORE FUNCTIONS ---
+def get_mcm(level, data_dict):
+    keys = np.array(list(data_dict.keys()))
+    vals = np.array(list(data_dict.values()))
+    return np.interp(level, keys, vals)
 
-# --- 3. PAGE CONFIG ---
-st.set_page_config(page_title="Unified Operations Tool", layout="wide")
-st.title("⚡ Power Plant Unified Planner")
+def get_rl(mcm, data_dict):
+    keys = np.array(list(data_dict.keys()))
+    vals = np.array(list(data_dict.values()))
+    return np.interp(mcm, vals, keys)
 
-# --- 4. SIDEBAR (Global Inputs) ---
+def get_flow_mcm_hr(head_diff):
+    # Logic from your 2nd code: head-based discharge rates
+    if head_diff > 3.0: return 0.17
+    elif 2.0 <= head_diff <= 3.0: return 0.15
+    elif 1.5 <= head_diff < 2.0: return 0.12
+    elif head_diff > 0: return 0.08
+    else: return 0.0
+
+# --- 3. APP SETUP ---
+st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
+st.title("⚡ BTRP Dam & Rawalje PH Unified Tool")
+
+# Sidebar for Current Readings
 with st.sidebar:
-    st.header("📍 Current Status")
-    u_level_in = st.number_input("Upper RL (m)", value=94.450, format="%.3f")
-    l_level_in = st.number_input("Lower RL (m)", value=90.000, format="%.3f")
-    
+    st.header("📍 Current Shift Levels")
+    curr_u_rl = st.number_input("BTRP Level (m)", value=94.450, format="%.3f")
+    curr_l_rl = st.number_input("Rawalje Level (m)", value=90.000, format="%.3f")
     st.divider()
-    st.header("⚙️ Generation Targets")
-    gen_mus_in = st.number_input("Upper PH (MUS)", value=0.120, format="%.3f")
-    l_gen_mus_in = st.number_input("Lower PH (MUS)", value=0.050, format="%.3f")
+    u_rate = 0.820  # MCM/MUS for BTRP
+    l_rate = 9.360  # MCM/MUS for Rawalje
 
-# --- 5. TABS ---
-tab_sim, tab_lookup = st.tabs(["Operational Simulation", "Data Lookup Tool"])
+tab1, tab2 = st.tabs(["🎯 Planning (Generation Needed)", "🔮 Simulation (What-If?)"])
 
-# --- TAB 1: SIMULATION ---
-with tab_sim:
-    st.subheader("Shift Calculation & Gate Dynamics")
-    
-    col_gate1, col_gate2 = st.columns(2)
-    with col_gate1:
-        gate_is_open = st.toggle("Interconnecting Gate Open?", value=False)
-    with col_gate2:
-        hours_open = st.number_input("Hours to Open (Hrs)", min_value=0.0, value=6.0, step=0.5) if gate_is_open else 0.0
+# --- TAB 1: PLANNING MODE ---
+with tab1:
+    st.subheader("Calculate Requirements to reach Targets")
+    col1, col2 = st.columns(2)
+    with col1:
+        u_target_rl = st.number_input("BTRP Target RL (m)", value=94.500, format="%.3f")
+    with col2:
+        l_gen_target = st.number_input("Planned Rawalje Gen (MUS)", value=0.080, format="%.3f")
 
-    if st.button("Run Simulation", type="primary"):
-        # Initial State
-        u_start_mcm, _ = get_nearest_val(u_level_in, U_LEVEL_DATA, U_CONTENT_DATA)
-        l_start_mcm, _ = get_nearest_val(l_level_in, L_LEVEL_DATA, L_CONTENT_DATA)
+    if st.button("Calculate Plan"):
+        # Initial Storage
+        start_u_mcm = get_mcm(curr_u_rl, U_DATA)
+        start_l_mcm = get_mcm(curr_l_rl, L_DATA)
+        target_u_mcm = get_mcm(u_target_rl, U_DATA)
         
-        # 1. Gen Impacts
-        u_running_mcm = u_start_mcm + (gen_mus_in * 0.820)
-        l_running_mcm = l_start_mcm - (l_gen_mus_in * 9.360)
+        # Rawalje Requirement
+        demand_l = l_gen_target * l_rate
+        floor_l_mcm = 3.290 # RL 90.000
+        available_l = start_l_mcm - floor_l_mcm
+        transfer_needed = max(0.0, demand_l - available_l)
         
-        # 2. Dynamic Gate Loop
-        gate_vol_total = 0.0
-        if gate_is_open and hours_open > 0:
-            for m in range(int(hours_open * 60)):
-                # Map MCM back to RL
-                curr_u_rl = U_LEVEL_DATA[(np.abs(U_CONTENT_DATA - u_running_mcm)).argmin()]
-                curr_l_rl = L_LEVEL_DATA[(np.abs(L_CONTENT_DATA - l_running_mcm)).argmin()]
-                head_diff = curr_u_rl - curr_l_rl
-                
-                if head_diff <= 0: break
-                
-                # Transfer Rate Logic
-                if head_diff > 3.0: rate = 0.17
-                elif 2.0 <= head_diff <= 3.0: rate = 0.15
-                elif 1.5 <= head_diff < 2.0: rate = 0.12
-                else: rate = 0.08
-                
-                step_vol = rate / 60
-                u_running_mcm -= step_vol
-                l_running_mcm += step_vol
-                gate_vol_total += step_vol
-
-        # Final RL Lookups
-        final_u_rl = U_LEVEL_DATA[(np.abs(U_CONTENT_DATA - u_running_mcm)).argmin()]
-        final_l_rl = L_LEVEL_DATA[(np.abs(L_CONTENT_DATA - l_running_mcm)).argmin()]
-
-        # Results
+        # BTRP Generation
+        gen_for_level = (target_u_mcm - start_u_mcm) / u_rate
+        gen_for_transfer = transfer_needed / u_rate
+        total_btrp_gen = gen_for_level + gen_for_transfer
+        
         st.divider()
-        r1, r2 = st.columns(2)
-        r1.metric("Final Upper Level", f"{final_u_rl:.3f} m", delta=f"{final_u_rl - u_level_in:.3f}")
-        r2.metric("Final Lower Level", f"{final_l_rl:.3f} m", delta=f"{final_l_rl - l_level_in:.3f}")
+        res1, res2 = st.columns(2)
+        res1.metric("Total BTRP Gen Required", f"{total_btrp_gen:.3f} MUS")
+        res1.write(f"For Target RL: {gen_for_level:.3f} MUS")
+        res1.write(f"For Transfer: {gen_for_transfer:.3f} MUS")
         
-        with st.expander("Detailed Calculation Log"):
-            st.write(f"Initial Upper Volume: {u_start_mcm:.3f} MCM")
-            st.write(f"Initial Lower Volume: {l_start_mcm:.3f} MCM")
-            if gate_is_open:
-                st.write(f"Total Water Transferred: **{gate_vol_total:.3f} MCM**")
-                st.write(f"Final Volume (Upper/Lower): {u_running_mcm:.3f} / {l_running_mcm:.3f}")
+        res2.metric("Volume to Transfer", f"{transfer_needed:.3f} MCM")
+        st.info("Note: Use Tab 2 to find the exact gate hours based on this Volume.")
 
-# --- TAB 2: LOOKUP TOOL ---
-with tab_lookup:
-    st.subheader("Manual RL/Volume Converter")
-    lcol, rcol = st.columns(2)
-    
-    with lcol:
-        st.markdown("### Upper RL Lookup")
-        manual_u = st.number_input("Enter Upper RL", value=u_level_in, format="%.3f", key="man_u")
-        mcm_u, match_u = get_nearest_val(manual_u, U_LEVEL_DATA, U_CONTENT_DATA)
-        st.info(f"Volume: **{mcm_u:.3f} MCM** (Matched {match_u}m)")
+# --- TAB 2: SIMULATION MODE ---
+with tab2:
+    st.subheader("Predict levels based on specific Gen/Gate Hours")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        sim_u_gen = st.number_input("BTRP Generation (MUS)", value=0.120, format="%.3f")
+    with c2:
+        sim_l_gen = st.number_input("Rawalje Generation (MUS)", value=0.050, format="%.3f")
+    with c3:
+        sim_hours = st.number_input("Gate Open Time (Hours)", value=6.0)
+
+    if st.button("Run What-If Simulation"):
+        u_mcm = get_mcm(curr_u_rl, U_DATA) + (sim_u_gen * u_rate)
+        l_mcm = get_mcm(curr_l_rl, L_DATA) - (sim_l_gen * l_rate)
         
-    with rcol:
-        st.markdown("### Lower RL Lookup")
-        manual_l = st.number_input("Enter Lower RL", value=l_level_in, format="%.3f", key="man_l")
-        mcm_l, match_l = get_nearest_val(manual_l, L_LEVEL_DATA, L_CONTENT_DATA)
-        st.info(f"Volume: **{mcm_l:.3f} MCM** (Matched {match_l}m)")
+        total_moved = 0.0
+        # 1-minute iterative loop
+        for m in range(int(sim_hours * 60)):
+            u_rl_now = get_rl(u_mcm, U_DATA)
+            l_rl_now = get_rl(l_mcm, L_DATA)
+            h_diff = u_rl_now - l_rl_now
+            
+            if h_diff <= 0: break
+            
+            flow_min = get_flow_mcm_hr(h_diff) / 60
+            u_mcm -= flow_min
+            l_mcm += flow_min
+            total_moved += flow_min
+            
+        final_u_rl = get_rl(u_mcm, U_DATA)
+        final_l_rl = get_rl(l_mcm, L_DATA)
+        
+        st.divider()
+        col_r1, col_r2, col_r3 = st.columns(3)
+        col_r1.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
+        col_r2.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
+        col_r3.metric("Total Transferred", f"{total_moved:.3f} MCM")
