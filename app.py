@@ -47,49 +47,26 @@ def get_flow_mcm_hr(head_diff):
 # --- 3. APP SETUP & MOBILE DARK MODE OPTIMIZATION ---
 st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
 
-# Enhanced CSS for Mobile Dark Mode Visibility
 st.markdown("""
     <style>
-    /* Main Background */
     .stApp { background-color: #0E1117; }
-    
-    /* Input Box Visibility */
-    div[data-baseweb="input"] {
-        background-color: #1A1C24 !important;
-        border: 1px solid #4B5563 !important;
-    }
+    div[data-baseweb="input"] { background-color: #1A1C24 !important; border: 1px solid #4B5563 !important; }
     input { color: #00FFC2 !important; font-weight: bold !important; }
-    
-    /* Metric Card Styling */
-    div[data-testid="stMetric"] {
-        background-color: #1F2937;
-        border: 2px solid #374151;
-        border-radius: 12px;
-        padding: 15px;
-    }
+    div[data-testid="stMetric"] { background-color: #1F2937; border: 2px solid #374151; border-radius: 12px; padding: 15px; }
     div[data-testid="stMetricValue"] { color: #00D1FF !important; }
     div[data-testid="stMetricLabel"] { color: #E5E7EB !important; font-size: 1.1rem !important; }
-
-    /* Button Styling */
-    .stButton>button {
-        width: 100%;
-        background-color: #3B82F6;
-        color: white;
-        font-weight: bold;
-        border-radius: 10px;
-        height: 3em;
-        border: none;
-    }
-    
-    /* Headers */
+    .stButton>button { width: 100%; background-color: #3B82F6; color: white; font-weight: bold; border-radius: 10px; height: 3em; border: none; }
     h1 { color: #60A5FA; text-shadow: 2px 2px #000; }
     h2, h3 { color: #FB923C; }
+    /* Neon Alerts */
+    .danger-alert { color: #FF3131; font-weight: bold; border: 2px solid #FF3131; padding: 10px; border-radius: 5px; background: #2D0000; }
+    .warning-alert { color: #FFAC1C; font-weight: bold; border: 2px solid #FFAC1C; padding: 10px; border-radius: 5px; background: #2D1B00; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("⚡ BTRP & Rawalje Operational Dispatch")
 
-# --- 4. TOP SECTION: CURRENT READINGS (Moved from Sidebar) ---
+# --- 4. TOP SECTION: CURRENT READINGS ---
 st.header("📍 Current Shift Data")
 col_curr1, col_curr2 = st.columns(2)
 with col_curr1:
@@ -134,7 +111,6 @@ with tab1:
 # --- TAB 2: SIMULATION MODE ---
 with tab2:
     st.subheader("Predictive 'What-If' Simulation")
-    
     gate_status = st.toggle("Interconnecting Gate Open?", value=False)
     
     s_col1, s_col2, s_col3 = st.columns(3)
@@ -167,6 +143,15 @@ with tab2:
         final_l_rl = get_rl(l_mcm, L_DATA)
         
         st.divider()
+        
+        # --- ALERT LOGIC ---
+        if final_l_rl < 90.000:
+            st.markdown(f'<div class="danger-alert">🚨 CRITICAL: Rawalje predicted to fall to {final_l_rl:.3f} m (Below 90.00m Limit!)</div>', unsafe_allow_html=True)
+        elif final_l_rl > 94.490:
+            st.markdown(f'<div class="warning-alert">⚠️ WARNING: Rawalje predicted to rise to {final_l_rl:.3f} m (Above 94.49m Limit!)</div>', unsafe_allow_html=True)
+        else:
+            st.success("✅ Prediction within safe operational limits for Rawalje.")
+
         st.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
         st.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
         st.metric("Total Water Transferred", f"{total_moved:.3f} MCM")
