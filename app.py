@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-# --- 1. SHARED DATASETS (BTRP & RAWALJE) ---
+# --- 1. DATASETS (BTRP & RAWALJE) ---
 U_DATA = { # BTRP DAM
     90.000: 4.336, 90.025: 4.354, 90.050: 4.371, 90.075: 4.389, 90.100: 4.406,
     90.125: 4.424, 90.150: 4.441, 90.175: 4.459, 90.200: 4.476, 90.225: 4.494,
@@ -44,41 +44,74 @@ def get_flow_mcm_hr(head_diff):
     elif head_diff > 0: return 0.08
     else: return 0.0
 
-# --- 3. APP SETUP & STYLING ---
+# --- 3. APP SETUP & MOBILE DARK MODE OPTIMIZATION ---
 st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
 
-# Custom CSS for a colorful look
+# Enhanced CSS for Mobile Dark Mode Visibility
 st.markdown("""
     <style>
-    .main { background-color: #f0f2f6; }
-    .stButton>button { background-color: #007bff; color: white; border-radius: 8px; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
-    h1 { color: #1e3d59; text-align: center; }
-    h3 { color: #ff6e40; }
+    /* Main Background */
+    .stApp { background-color: #0E1117; }
+    
+    /* Input Box Visibility */
+    div[data-baseweb="input"] {
+        background-color: #1A1C24 !important;
+        border: 1px solid #4B5563 !important;
+    }
+    input { color: #00FFC2 !important; font-weight: bold !important; }
+    
+    /* Metric Card Styling */
+    div[data-testid="stMetric"] {
+        background-color: #1F2937;
+        border: 2px solid #374151;
+        border-radius: 12px;
+        padding: 15px;
+    }
+    div[data-testid="stMetricValue"] { color: #00D1FF !important; }
+    div[data-testid="stMetricLabel"] { color: #E5E7EB !important; font-size: 1.1rem !important; }
+
+    /* Button Styling */
+    .stButton>button {
+        width: 100%;
+        background-color: #3B82F6;
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        height: 3em;
+        border: none;
+    }
+    
+    /* Headers */
+    h1 { color: #60A5FA; text-shadow: 2px 2px #000; }
+    h2, h3 { color: #FB923C; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("⚡ BTRP & Rawalje Operational Dispatch")
 
-# --- 4. SIDEBAR ---
-with st.sidebar:
-    st.header("📊 Current Shift Data")
+# --- 4. TOP SECTION: CURRENT READINGS (Moved from Sidebar) ---
+st.header("📍 Current Shift Data")
+col_curr1, col_curr2 = st.columns(2)
+with col_curr1:
     curr_u_rl = st.number_input("Current BTRP RL (m)", value=94.450, format="%.3f")
+with col_curr2:
     curr_l_rl = st.number_input("Current Rawalje RL (m)", value=90.000, format="%.3f")
-    st.divider()
-    u_rate = 0.820  # MCM/MUS
-    l_rate = 9.360  # MCM/MUS
-    st.info("BTRP & Rawalje datasets loaded.")
 
+u_rate = 0.820  # MCM/MUS
+l_rate = 9.360  # MCM/MUS
+
+st.divider()
+
+# --- 5. TABS ---
 tab1, tab2 = st.tabs(["🎯 PLANNING MODE", "🔮 SIMULATION MODE"])
 
 # --- TAB 1: PLANNING MODE ---
 with tab1:
     st.subheader("Plan Generation Targets for Tomorrow")
-    col1, col2 = st.columns(2)
-    with col1:
+    p_col1, p_col2 = st.columns(2)
+    with p_col1:
         u_target_rl = st.number_input("Target BTRP RL (m)", value=94.500, format="%.3f")
-    with col2:
+    with p_col2:
         l_gen_target = st.number_input("Rawalje Generation Plan (MUS)", value=0.080, format="%.3f")
 
     if st.button("Calculate Shift Plan"):
@@ -87,7 +120,7 @@ with tab1:
         target_u_mcm = get_mcm(u_target_rl, U_DATA)
         
         demand_l = l_gen_target * l_rate
-        available_l = start_l_mcm - 3.290 # Safety floor RL 90.00
+        available_l = start_l_mcm - 3.290 
         transfer_needed = max(0.0, demand_l - available_l)
         
         gen_for_level = (target_u_mcm - start_u_mcm) / u_rate
@@ -95,28 +128,22 @@ with tab1:
         total_gen_required = gen_for_level + gen_for_transfer
         
         st.divider()
-        res1, res2 = st.columns(2)
-        with res1:
-            st.metric("Total generation required from now to Tommorow 8 hours", f"{total_gen_required:.3f} Mus")
-        with res2:
-            st.metric("Volume to Transfer", f"{transfer_needed:.3f} MCM")
-        
-        st.success(f"To reach {u_target_rl}m at BTRP, schedule {total_gen_required:.3f} Mus total.")
+        st.metric("Total generation required from now to Tommorow 8 hours", f"{total_gen_required:.3f} Mus")
+        st.metric("Volume to Transfer", f"{transfer_needed:.3f} MCM")
 
 # --- TAB 2: SIMULATION MODE ---
 with tab2:
     st.subheader("Predictive 'What-If' Simulation")
     
-    # Gate Condition Toggle
     gate_status = st.toggle("Interconnecting Gate Open?", value=False)
     
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        sim_u_gen = st.number_input("Total generation (Mus)", value=0.120, format="%.3f", key="sim_u")
-    with c2:
-        sim_l_gen = st.number_input("Rawalje PH Generation (Mus)", value=0.050, format="%.3f", key="sim_l")
-    with c3:
-        sim_hours = st.number_input("Gate Operation Time (Hours)", value=6.0 if gate_status else 0.0, disabled=not gate_status)
+    s_col1, s_col2, s_col3 = st.columns(3)
+    with s_col1:
+        sim_u_gen = st.number_input("Total generation (Mus)", value=0.120, format="%.3f")
+    with s_col2:
+        sim_l_gen = st.number_input("Rawalje PH Generation (Mus)", value=0.050, format="%.3f")
+    with s_col3:
+        sim_hours = st.number_input("Gate Open Time (Hrs)", value=6.0 if gate_status else 0.0, disabled=not gate_status)
 
     if st.button("Start Simulation"):
         u_mcm = get_mcm(curr_u_rl, U_DATA) + (sim_u_gen * u_rate)
@@ -140,11 +167,6 @@ with tab2:
         final_l_rl = get_rl(l_mcm, L_DATA)
         
         st.divider()
-        st.write("### Predicted Results at End of Shift")
-        col_r1, col_r2, col_r3 = st.columns(3)
-        col_r1.metric("Final BTRP RL", f"{final_u_rl:.3f} m", delta=f"{final_u_rl - curr_u_rl:.3f}")
-        col_r2.metric("Final Rawalje RL", f"{final_l_rl:.3f} m", delta=f"{final_l_rl - curr_l_rl:.3f}")
-        col_r3.metric("Total Water Transferred", f"{total_moved:.3f} MCM")
-
-        if final_l_rl < 90.0:
-            st.error("🚨 Warning: Rawalje Level predicted to fall below 90.00m!")
+        st.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
+        st.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
+        st.metric("Total Water Transferred", f"{total_moved:.3f} MCM")
