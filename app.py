@@ -38,97 +38,113 @@ def get_rl(mcm, data_dict):
     return np.interp(mcm, vals, keys)
 
 def get_flow_mcm_hr(head_diff):
-    # Logic from your 2nd code: head-based discharge rates
     if head_diff > 3.0: return 0.17
     elif 2.0 <= head_diff <= 3.0: return 0.15
     elif 1.5 <= head_diff < 2.0: return 0.12
     elif head_diff > 0: return 0.08
     else: return 0.0
 
-# --- 3. APP SETUP ---
+# --- 3. APP SETUP & STYLING ---
 st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
-st.title("⚡ BTRP Dam & Rawalje PH Unified Tool")
 
-# Sidebar for Current Readings
+# Custom CSS for a colorful look
+st.markdown("""
+    <style>
+    .main { background-color: #f0f2f6; }
+    .stButton>button { background-color: #007bff; color: white; border-radius: 8px; }
+    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    h1 { color: #1e3d59; text-align: center; }
+    h3 { color: #ff6e40; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("⚡ BTRP & Rawalje Operational Dispatch")
+
+# --- 4. SIDEBAR ---
 with st.sidebar:
-    st.header("📍 Current Shift Levels")
-    curr_u_rl = st.number_input("BTRP Level (m)", value=94.450, format="%.3f")
-    curr_l_rl = st.number_input("Rawalje Level (m)", value=90.000, format="%.3f")
+    st.header("📊 Current Shift Data")
+    curr_u_rl = st.number_input("Current BTRP RL (m)", value=94.450, format="%.3f")
+    curr_l_rl = st.number_input("Current Rawalje RL (m)", value=90.000, format="%.3f")
     st.divider()
-    u_rate = 0.820  # MCM/MUS for BTRP
-    l_rate = 9.360  # MCM/MUS for Rawalje
+    u_rate = 0.820  # MCM/MUS
+    l_rate = 9.360  # MCM/MUS
+    st.info("BTRP & Rawalje datasets loaded.")
 
-tab1, tab2 = st.tabs(["🎯 Planning (Generation Needed)", "🔮 Simulation (What-If?)"])
+tab1, tab2 = st.tabs(["🎯 PLANNING MODE", "🔮 SIMULATION MODE"])
 
 # --- TAB 1: PLANNING MODE ---
 with tab1:
-    st.subheader("Calculate Requirements to reach Targets")
+    st.subheader("Plan Generation Targets for Tomorrow")
     col1, col2 = st.columns(2)
     with col1:
-        u_target_rl = st.number_input("BTRP Target RL (m)", value=94.500, format="%.3f")
+        u_target_rl = st.number_input("Target BTRP RL (m)", value=94.500, format="%.3f")
     with col2:
-        l_gen_target = st.number_input("Planned Rawalje Gen (MUS)", value=0.080, format="%.3f")
+        l_gen_target = st.number_input("Rawalje Generation Plan (MUS)", value=0.080, format="%.3f")
 
-    if st.button("Calculate Plan"):
-        # Initial Storage
+    if st.button("Calculate Shift Plan"):
         start_u_mcm = get_mcm(curr_u_rl, U_DATA)
         start_l_mcm = get_mcm(curr_l_rl, L_DATA)
         target_u_mcm = get_mcm(u_target_rl, U_DATA)
         
-        # Rawalje Requirement
         demand_l = l_gen_target * l_rate
-        floor_l_mcm = 3.290 # RL 90.000
-        available_l = start_l_mcm - floor_l_mcm
+        available_l = start_l_mcm - 3.290 # Safety floor RL 90.00
         transfer_needed = max(0.0, demand_l - available_l)
         
-        # BTRP Generation
         gen_for_level = (target_u_mcm - start_u_mcm) / u_rate
         gen_for_transfer = transfer_needed / u_rate
-        total_btrp_gen = gen_for_level + gen_for_transfer
+        total_gen_required = gen_for_level + gen_for_transfer
         
         st.divider()
         res1, res2 = st.columns(2)
-        res1.metric("Total BTRP Gen Required", f"{total_btrp_gen:.3f} MUS")
-        res1.write(f"For Target RL: {gen_for_level:.3f} MUS")
-        res1.write(f"For Transfer: {gen_for_transfer:.3f} MUS")
+        with res1:
+            st.metric("Total generation required from now to Tommorow 8 hours", f"{total_gen_required:.3f} Mus")
+        with res2:
+            st.metric("Volume to Transfer", f"{transfer_needed:.3f} MCM")
         
-        res2.metric("Volume to Transfer", f"{transfer_needed:.3f} MCM")
-        st.info("Note: Use Tab 2 to find the exact gate hours based on this Volume.")
+        st.success(f"To reach {u_target_rl}m at BTRP, schedule {total_gen_required:.3f} Mus total.")
 
 # --- TAB 2: SIMULATION MODE ---
 with tab2:
-    st.subheader("Predict levels based on specific Gen/Gate Hours")
+    st.subheader("Predictive 'What-If' Simulation")
+    
+    # Gate Condition Toggle
+    gate_status = st.toggle("Interconnecting Gate Open?", value=False)
+    
     c1, c2, c3 = st.columns(3)
     with c1:
-        sim_u_gen = st.number_input("BTRP Generation (MUS)", value=0.120, format="%.3f")
+        sim_u_gen = st.number_input("Total generation (Mus)", value=0.120, format="%.3f", key="sim_u")
     with c2:
-        sim_l_gen = st.number_input("Rawalje Generation (MUS)", value=0.050, format="%.3f")
+        sim_l_gen = st.number_input("Rawalje PH Generation (Mus)", value=0.050, format="%.3f", key="sim_l")
     with c3:
-        sim_hours = st.number_input("Gate Open Time (Hours)", value=6.0)
+        sim_hours = st.number_input("Gate Operation Time (Hours)", value=6.0 if gate_status else 0.0, disabled=not gate_status)
 
-    if st.button("Run What-If Simulation"):
+    if st.button("Start Simulation"):
         u_mcm = get_mcm(curr_u_rl, U_DATA) + (sim_u_gen * u_rate)
         l_mcm = get_mcm(curr_l_rl, L_DATA) - (sim_l_gen * l_rate)
         
         total_moved = 0.0
-        # 1-minute iterative loop
-        for m in range(int(sim_hours * 60)):
-            u_rl_now = get_rl(u_mcm, U_DATA)
-            l_rl_now = get_rl(l_mcm, L_DATA)
-            h_diff = u_rl_now - l_rl_now
-            
-            if h_diff <= 0: break
-            
-            flow_min = get_flow_mcm_hr(h_diff) / 60
-            u_mcm -= flow_min
-            l_mcm += flow_min
-            total_moved += flow_min
+        if gate_status and sim_hours > 0:
+            for m in range(int(sim_hours * 60)):
+                u_rl_now = get_rl(u_mcm, U_DATA)
+                l_rl_now = get_rl(l_mcm, L_DATA)
+                h_diff = u_rl_now - l_rl_now
+                
+                if h_diff <= 0: break
+                
+                flow_min = get_flow_mcm_hr(h_diff) / 60
+                u_mcm -= flow_min
+                l_mcm += flow_min
+                total_moved += flow_min
             
         final_u_rl = get_rl(u_mcm, U_DATA)
         final_l_rl = get_rl(l_mcm, L_DATA)
         
         st.divider()
+        st.write("### Predicted Results at End of Shift")
         col_r1, col_r2, col_r3 = st.columns(3)
-        col_r1.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
-        col_r2.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
-        col_r3.metric("Total Transferred", f"{total_moved:.3f} MCM")
+        col_r1.metric("Final BTRP RL", f"{final_u_rl:.3f} m", delta=f"{final_u_rl - curr_u_rl:.3f}")
+        col_r2.metric("Final Rawalje RL", f"{final_l_rl:.3f} m", delta=f"{final_l_rl - curr_l_rl:.3f}")
+        col_r3.metric("Total Water Transferred", f"{total_moved:.3f} MCM")
+
+        if final_l_rl < 90.0:
+            st.error("🚨 Warning: Rawalje Level predicted to fall below 90.00m!")
