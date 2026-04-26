@@ -166,7 +166,7 @@ with tab2:
 
 # --- TAB 3: PUMPING OPERATION ---
 with tab3:
-    st.subheader("BTRP Pumping & Bhira Generation Analysis")
+    st.subheader("BTRP Level during Pumping")
     st.info(f"Pumping Rate Fixed at: {pump_rate} MCM/hr (Discharged Out)")
     
     col_p1, col_p2, col_p3 = st.columns(3)
