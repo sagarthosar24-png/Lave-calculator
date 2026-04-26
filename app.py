@@ -1,4 +1,4 @@
-import streamlit as st
+Import streamlit as st
 import numpy as np
 
 # --- 1. DATASETS (BTRP & RAWALJE) ---
@@ -92,6 +92,7 @@ with tab1:
         l_gen_target = st.number_input("Rawalje Generation Plan (MUS)", value=0.080, format="%.3f")
 
     if st.button("Calculate Shift Plan & Gate Time"):
+        # 1. Calculate Required Generation
         start_u_mcm = get_mcm(curr_u_rl, U_DATA)
         start_l_mcm = get_mcm(curr_l_rl, L_DATA)
         target_u_mcm = get_mcm(u_target_rl, U_DATA)
@@ -104,6 +105,7 @@ with tab1:
         gen_for_transfer = transfer_needed / u_rate
         total_gen_required = gen_for_level + gen_for_transfer
         
+        # 2. Iterative Calculation for Gate Opening Time
         u_temp_mcm = start_u_mcm + (total_gen_required * u_rate)
         l_temp_mcm = start_l_mcm - (l_gen_target * l_rate)
         
@@ -116,7 +118,7 @@ with tab1:
             h_diff = u_rl_now - l_rl_now
             
             if h_diff <= 0:
-                break
+                break # Cannot transfer more water
                 
             flow_min = get_flow_mcm_hr(h_diff) / 60
             u_temp_mcm -= flow_min
@@ -124,7 +126,7 @@ with tab1:
             total_transferred += flow_min
             minutes_required += 1
             
-            if minutes_required > 1440:
+            if minutes_required > 1440: # Cap at 24 hours to prevent infinite loop
                 break
 
         hrs = minutes_required // 60
@@ -133,6 +135,7 @@ with tab1:
         st.divider()
         st.metric("Total generation required from now to Tommorow 8 hours", f"{total_gen_required:.3f} Mus")
         
+        # New Time Output
         if transfer_needed > 0:
             st.markdown(f'<div class="time-card">⏱️ INTAKE GATES MUST BE OPEN FOR: {hrs} Hours and {mins} Minutes</div>', unsafe_allow_html=True)
             st.write(f"Total volume to be moved: **{transfer_needed:.3f} MCM**")
@@ -146,23 +149,14 @@ with tab2:
     
     s_col1, s_col2, s_col3 = st.columns(3)
     with s_col1:
-        sim_u_gen_input = st.number_input("Total generation (Mus)", value=0.120, format="%.3f", key="sim_u_val")
+        sim_u_gen = st.number_input("Total generation (Mus)", value=0.120, format="%.3f", key="sim_u_val")
     with s_col2:
         sim_l_gen = st.number_input("Rawalje PH Generation (Mus)", value=0.050, format="%.3f", key="sim_l_val")
     with s_col3:
         sim_hours = st.number_input("Gate Open Time (Hrs)", value=6.0 if gate_status else 0.0, disabled=not gate_status)
 
     if st.button("Start Simulation"):
-        # Range adjustment logic
-        effective_u_gen = sim_u_gen_input
-        if 0.20 <= sim_u_gen_input < 0.25:
-            effective_u_gen += 0.05
-            st.info(f"💡 Adjustment: Input {sim_u_gen_input} is in 0.20-0.25 range. Adding 0.05. Effective Gen: **{effective_u_gen:.3f} Mus**")
-        elif 0.25 <= sim_u_gen_input <= 0.30:
-            effective_u_gen += 0.10
-            st.info(f"💡 Adjustment: Input {sim_u_gen_input} is in 0.25-0.30 range. Adding 0.10. Effective Gen: **{effective_u_gen:.3f} Mus**")
-
-        u_mcm = get_mcm(curr_u_rl, U_DATA) + (effective_u_gen * u_rate)
+        u_mcm = get_mcm(curr_u_rl, U_DATA) + (sim_u_gen * u_rate)
         l_mcm = get_mcm(curr_l_rl, L_DATA) - (sim_l_gen * l_rate)
         
         total_moved = 0.0
