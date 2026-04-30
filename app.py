@@ -58,8 +58,8 @@ st.markdown("""
     .stButton>button { width: 100%; background-color: #3B82F6; color: white; font-weight: bold; border-radius: 10px; height: 3.5em; border: none; }
     h1 { color: #60A5FA; text-shadow: 2px 2px #000; text-align: center; }
     h2, h3 { color: #FB923C; }
-    .danger-alert { color: #FF3131; font-weight: bold; border: 2px solid #FF3131; padding: 10px; border-radius: 5px; background: #2D0000; margin-bottom: 10px; }
-    .warning-alert { color: #FFAC1C; font-weight: bold; border: 2px solid #FFAC1C; padding: 10px; border-radius: 5px; background: #2D1B00; margin-bottom: 10px; }
+    .danger-alert { color: #FF3131; font-weight: bold; border: 2px solid #FF3131; padding: 10px; border-radius: 5px; background: #2D0000; margin-bottom: 15px; }
+    .warning-alert { color: #FFAC1C; font-weight: bold; border: 2px solid #FFAC1C; padding: 10px; border-radius: 5px; background: #2D1B00; margin-bottom: 15px; }
     .time-card { background-color: #064E3B; border: 2px solid #10B981; color: #D1FAE5; padding: 15px; border-radius: 12px; font-size: 1.2rem; text-align: center; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
@@ -159,7 +159,21 @@ with tab2:
         
         final_u_rl = get_rl(u_mcm, U_DATA)
         final_l_rl = get_rl(l_mcm, L_DATA)
+        
         st.divider()
+        
+        # --- CALCULATION SUMMARY ---
+        st.info(f"""
+        **Calculation Summary:**
+        * Water added from BTRP Gen: **{(sim_u_gen * u_rate):.3f} MCM**
+        * Water used by Rawalje Gen: **{(sim_l_gen * l_rate):.3f} MCM**
+        * Water transferred via Gates: **{total_moved:.3f} MCM**
+        """)
+
+        # --- LOW LEVEL ALERT ---
+        if final_l_rl < 90.000:
+            st.markdown(f'<div class="danger-alert">⚠️ ALERT: Final Rawalje level ({final_l_rl:.3f}m) falls below 90.00m!</div>', unsafe_allow_html=True)
+
         col_res1, col_res2 = st.columns(2)
         with col_res1: st.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
         with col_res2: st.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
@@ -167,6 +181,13 @@ with tab2:
 # --- TAB 3: PUMPING & BHIRA OPERATION ---
 with tab3:
     st.subheader("BTRP Pumping & Bhira Generation Analysis")
+    
+    # --- PUMPING POSSIBILITY INDICATOR ---
+    if curr_u_rl >= 94.480:
+        st.success(f"✅ BTRP RL is {curr_u_rl:.3f}m. Pumping is POSSIBLE.")
+    else:
+        st.markdown(f'<div class="warning-alert">⚠️ BTRP RL is {curr_u_rl:.3f}m (Below 94.48m). Pumping NOT RECOMMENDED.</div>', unsafe_allow_html=True)
+
     st.info(f"Pumping Rate Fixed at: {pump_rate} MCM/hr (Discharged Out)")
     
     col_p1, col_p2, col_p3 = st.columns(3)
@@ -178,26 +199,19 @@ with tab3:
         p_gate_status = st.toggle("Interconnecting Gate Open?", value=False, key="pump_gate")
 
     if st.button("Analyze Pumping Effect"):
-        # Initial MCM from current levels
         u_mcm = get_mcm(curr_u_rl, U_DATA)
         l_mcm = get_mcm(curr_l_rl, L_DATA)
         
-        # Add water from Bhira and subtract pumped water
-        # Bhira inflow (using BTRP rate) - Bhira Gen adds water to BTRP
         net_btrp_change = (bhira_gen * u_rate) - (pump_hrs * pump_rate)
         u_mcm += net_btrp_change
         
         total_moved = 0.0
-        # If gate is open during pumping, water levels will balance
         if p_gate_status:
-            # We simulate the balancing over the pumping period (assume pumping is constant)
             for m in range(int(pump_hrs * 60)):
                 u_rl_now = get_rl(u_mcm, U_DATA)
                 l_rl_now = get_rl(l_mcm, L_DATA)
                 h_diff = u_rl_now - l_rl_now
-                
                 if h_diff <= 0: break
-                
                 flow_min = get_flow_mcm_hr(h_diff) / 60
                 u_mcm -= flow_min
                 l_mcm += flow_min
@@ -207,6 +221,11 @@ with tab3:
         final_l_rl = get_rl(l_mcm, L_DATA)
         
         st.divider()
+        
+        # --- NEW BTRP LIMIT ALERT ---
+        if final_u_rl < 93.850:
+            st.markdown(f'<div class="danger-alert">❌ ALERT: Pumping cannot be possible for {pump_hrs} hours. Final BTRP level ({final_u_rl:.3f}m) drops below 93.85m!</div>', unsafe_allow_html=True)
+
         st.write(f"Total Water Pumped Out: **{pump_hrs * pump_rate:.3f} MCM**")
         if bhira_gen > 0:
             st.write(f"Total Water Inflow from Bhira: **{bhira_gen * u_rate:.3f} MCM**")
