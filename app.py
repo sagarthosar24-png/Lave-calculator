@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-# --- 1. DATASETS (BTRP & RAWALJE) ---
+# --- 1. DATASETS (BTRP, RAWALJE, & FLOW) ---
 U_DATA = { # BTRP DAM
     90.000: 4.336, 90.025: 4.354, 90.050: 4.371, 90.075: 4.389, 90.100: 4.406,
     90.125: 4.424, 90.150: 4.441, 90.175: 4.459, 90.200: 4.476, 90.225: 4.494,
@@ -26,6 +26,19 @@ L_DATA = { # RAWALJE FOREBAY
     94.000: 4.840, 94.250: 4.945, 94.500: 5.050, 94.750: 5.495, 95.000: 5.940
 }
 
+FLOW_DATA = { # Diff(m): Flow(m3/s)
+    0.000: 0.00, 0.063: 2.50, 0.125: 5.00, 0.188: 7.50, 0.250: 10.00,
+    0.313: 12.50, 0.375: 15.00, 0.438: 17.50, 0.500: 20.00, 0.563: 20.75,
+    0.625: 21.50, 0.688: 22.25, 0.750: 23.00, 0.813: 23.75, 0.875: 24.50,
+    0.938: 25.25, 1.000: 26.00, 1.125: 27.50, 1.250: 29.00, 1.375: 30.50,
+    1.500: 32.00, 1.625: 33.50, 1.750: 35.00, 1.875: 36.50, 2.000: 38.00,
+    2.125: 39.13, 2.250: 40.25, 2.375: 41.38, 2.500: 42.50, 2.625: 43.63,
+    2.750: 44.75, 2.875: 45.88, 3.000: 47.00, 3.125: 48.00, 3.250: 49.00,
+    3.375: 50.00, 3.500: 51.00, 3.625: 52.00, 3.750: 53.00, 3.875: 54.00,
+    4.000: 55.00, 4.125: 56.00, 4.250: 57.00, 4.375: 58.00, 4.500: 59.00,
+    4.625: 60.00, 4.750: 61.00, 4.875: 62.00, 5.000: 63.00
+}
+
 # --- 2. CORE FUNCTIONS ---
 def get_mcm(level, data_dict):
     keys = np.array(list(data_dict.keys()))
@@ -38,11 +51,11 @@ def get_rl(mcm, data_dict):
     return np.interp(mcm, vals, keys)
 
 def get_flow_mcm_hr(head_diff):
-    if head_diff > 3.0: return 0.17
-    elif 2.0 <= head_diff <= 3.0: return 0.15
-    elif 1.5 <= head_diff < 2.0: return 0.12
-    elif head_diff > 0: return 0.08
-    else: return 0.0
+    if head_diff <= 0: return 0.0
+    diffs = np.array(list(FLOW_DATA.keys()))
+    flows = np.array(list(FLOW_DATA.values()))
+    flow_m3_sec = np.interp(head_diff, diffs, flows)
+    return (flow_m3_sec * 3600) / 1000000 # Convert to MCM/hr
 
 # --- 3. APP SETUP & MOBILE DARK MODE ---
 st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
@@ -159,10 +172,8 @@ with tab2:
         
         final_u_rl = get_rl(u_mcm, U_DATA)
         final_l_rl = get_rl(l_mcm, L_DATA)
-        
         st.divider()
         
-        # --- CALCULATION SUMMARY ---
         st.info(f"""
         **Calculation Summary:**
         * Water added from BTRP Gen: **{(sim_u_gen * u_rate):.3f} MCM**
@@ -170,7 +181,6 @@ with tab2:
         * Water transferred via Gates: **{total_moved:.3f} MCM**
         """)
 
-        # --- LOW LEVEL ALERT ---
         if final_l_rl < 90.000:
             st.markdown(f'<div class="danger-alert">⚠️ ALERT: Final Rawalje level ({final_l_rl:.3f}m) falls below 90.00m!</div>', unsafe_allow_html=True)
 
@@ -182,7 +192,6 @@ with tab2:
 with tab3:
     st.subheader("BTRP Pumping & Bhira Generation Analysis")
     
-    # --- PUMPING POSSIBILITY INDICATOR ---
     if curr_u_rl >= 94.480:
         st.success(f"✅ BTRP RL is {curr_u_rl:.3f}m. Pumping is POSSIBLE.")
     else:
@@ -219,10 +228,8 @@ with tab3:
 
         final_u_rl = get_rl(u_mcm, U_DATA)
         final_l_rl = get_rl(l_mcm, L_DATA)
-        
         st.divider()
         
-        # --- NEW BTRP LIMIT ALERT ---
         if final_u_rl < 93.850:
             st.markdown(f'<div class="danger-alert">❌ ALERT: Pumping cannot be possible for {pump_hrs} hours. Final BTRP level ({final_u_rl:.3f}m) drops below 93.85m!</div>', unsafe_allow_html=True)
 
@@ -231,10 +238,5 @@ with tab3:
             st.write(f"Total Water Inflow from Bhira: **{bhira_gen * u_rate:.3f} MCM**")
             
         p_res1, p_res2 = st.columns(2)
-        with p_res1:
-            st.metric("New BTRP RL", f"{final_u_rl:.3f} m")
-        with p_res2:
-            st.metric("New Rawalje RL", f"{final_l_rl:.3f} m")
-        
-        if p_gate_status:
-            st.write(f"Water moved to Rawalje via Gate: **{total_moved:.3f} MCM**")
+        with p_res1: st.metric("New BTRP RL", f"{final_u_rl:.3f} m")
+        with p_res2: st.metric("New Rawalje RL", f"{final_l_rl:.3f} m")
