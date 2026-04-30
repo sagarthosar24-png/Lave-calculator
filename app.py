@@ -37,41 +37,35 @@ def get_rl(mcm, data_dict):
     vals = np.array(list(data_dict.values()))
     return np.interp(mcm, vals, keys)
 
-# --- 3. UI TABS ---
-tab1, tab2 = st.tabs(["Simulation Mode", "Pumping Mode"])
+# --- 3. UI LAYOUT ---
+st.title("Water Level Management System")
+tab_sim, tab_pump = st.tabs(["Simulation Mode", "Pumping Mode"])
 
-# --- SIMULATION MODE ---
-with tab1:
+# --- SIMULATION MODE TAB ---
+with tab_sim:
     st.header("Simulation Mode")
-    raw_lvl = st.number_input("Current Rawalje Level (m)", value=91.0, step=0.01)
-    op_hours = st.number_input("Operating Hours", value=1, min_value=0)
-    
-    # Logic for simulation (Example calculation)
-    # final_raw_lvl = [Logic to calculate final level]
-    # For demonstration, let's assume a dummy calculation result:
-    final_raw_lvl = raw_lvl - (op_hours * 0.1) 
+    current_rawl_lvl = st.number_input("Enter Current Rawalje Level (m):", value=90.50, step=0.01)
+    # Assuming simulation logic calculates a final level (placeholder logic below)
+    final_rawl_lvl = current_rawl_lvl - 0.6  # Placeholder for calculation result
 
-    # --- Calculation Summary ---
-    st.subheader("📊 Calculation Summary")
-    col1, col2 = st.columns(2)
-    col1.metric("Initial Level", f"{raw_lvl} m")
-    col2.metric("Final Level", f"{final_raw_lvl:.3f} m", delta=round(final_raw_lvl-raw_lvl, 3))
+    st.subheader("Calculation Summary")
+    st.write(f"Initial Level: {current_rawl_lvl} m")
+    st.write(f"Predicted Final Level: {final_rawl_lvl:.3f} m")
 
-    # --- Alert for Rawalje Level ---
-    if final_raw_lvl < 90.00:
-        st.error(f"⚠️ Critical Alert: Final Rawalje level ({final_raw_lvl:.2f}m) is below 90.00m!")
+    if final_rawl_lvl < 90.00:
+        st.error(f"⚠️ Alert: Final Rawalje level ({final_rawl_lvl:.3f}m) falls below the 90.00m threshold!")
 
-# --- PUMPING MODE ---
-with tab2:
+# --- PUMPING MODE TAB ---
+with tab_pump:
     st.header("Pumping Mode")
-    btrp_lvl = st.number_input("Current BTRP Level (m)", value=94.5, step=0.01, format="%.3f")
-    p_hours = st.number_input("Pumping Hours Planned", value=1, min_value=0)
+    current_btrp_lvl = st.number_input("Enter Current BTRP Level (m):", value=94.00, step=0.01, format="%.3f")
+    op_hours = st.number_input("Enter Planned Pumping Hours:", min_value=0.0, value=1.0, step=0.5)
 
-    # --- Pumping Status Alerts ---
-    if btrp_lvl > 94.48:
-        st.success("✅ Pumping is possible. (Level is above 94.48m)")
+    # Pumping Logic Alerts
+    if current_btrp_lvl > 94.48:
+        st.success(f"✅ Current BTRP level is {current_btrp_lvl}m. Pumping is possible.")
     
-    if btrp_lvl < 93.85:
-        st.warning(f"🚫 Pumping cannot be possible for {p_hours} hours. (Level is below 93.85m)")
-    elif btrp_lvl <= 94.48:
-        st.info("Level is in marginal range.")
+    if current_btrp_lvl < 93.85:
+        st.error(f"❌ Alert: BTRP level is too low ({current_btrp_lvl}m). Pumping cannot be possible for {op_hours} hours.")
+    elif current_btrp_lvl <= 94.48:
+        st.info("BTRP level is within operating range but below the high-confidence pumping threshold.")
