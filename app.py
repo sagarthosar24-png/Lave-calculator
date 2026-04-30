@@ -35,44 +35,43 @@ def get_mcm(level, data_dict):
 def get_rl(mcm, data_dict):
     keys = np.array(list(data_dict.keys()))
     vals = np.array(list(data_dict.values()))
-    # Standard linear interpolation for reversing Level -> MCM
     return np.interp(mcm, vals, keys)
 
-# --- 3. APP INTERFACE ---
-st.title("Water Level Management System")
-
+# --- 3. UI TABS ---
 tab1, tab2 = st.tabs(["Simulation Mode", "Pumping Mode"])
 
-# --- SIMULATION MODE TAB ---
+# --- SIMULATION MODE ---
 with tab1:
-    st.subheader("Rawalje Simulation")
-    raw_level = st.number_input("Enter Current Rawalje Level (m)", value=91.000, format="%.3f")
-    reduction = st.number_input("Enter Reduction (MCM)", value=0.000, format="%.3f")
+    st.header("Simulation Mode")
+    raw_lvl = st.number_input("Current Rawalje Level (m)", value=91.0, step=0.01)
+    op_hours = st.number_input("Operating Hours", value=1, min_value=0)
     
-    # Core Calculation
-    initial_mcm = get_mcm(raw_level, L_DATA)
-    final_mcm = initial_mcm - reduction
-    final_level = get_rl(final_mcm, L_DATA)
-    
-    # 1. Calculation Summary
-    st.write("---")
-    st.write("### Calculation Summary")
-    st.write(f"Initial Storage: **{initial_mcm:.3f} MCM**")
-    st.write(f"Final Storage: **{final_mcm:.3f} MCM**")
-    st.write(f"Final Projected Level: **{final_level:.3f} m**")
-    
-    # 2. Rawalje Alert
-    if final_level < 90.00:
-        st.error(f"⚠️ Alert: Final Rawalje level ({final_level:.3f}m) falls below 90.00m")
+    # Logic for simulation (Example calculation)
+    # final_raw_lvl = [Logic to calculate final level]
+    # For demonstration, let's assume a dummy calculation result:
+    final_raw_lvl = raw_lvl - (op_hours * 0.1) 
 
-# --- PUMPING MODE TAB ---
+    # --- Calculation Summary ---
+    st.subheader("📊 Calculation Summary")
+    col1, col2 = st.columns(2)
+    col1.metric("Initial Level", f"{raw_lvl} m")
+    col2.metric("Final Level", f"{final_raw_lvl:.3f} m", delta=round(final_raw_lvl-raw_lvl, 3))
+
+    # --- Alert for Rawalje Level ---
+    if final_raw_lvl < 90.00:
+        st.error(f"⚠️ Critical Alert: Final Rawalje level ({final_raw_lvl:.2f}m) is below 90.00m!")
+
+# --- PUMPING MODE ---
 with tab2:
-    st.subheader("BTRP Pumping Mode")
-    btrp_level = st.number_input("Enter BTRP Level (m)", value=94.000, format="%.3f")
-    hours = st.number_input("Enter Hours", value=0.0, step=0.1)
+    st.header("Pumping Mode")
+    btrp_lvl = st.number_input("Current BTRP Level (m)", value=94.5, step=0.01, format="%.3f")
+    p_hours = st.number_input("Pumping Hours Planned", value=1, min_value=0)
+
+    # --- Pumping Status Alerts ---
+    if btrp_lvl > 94.48:
+        st.success("✅ Pumping is possible. (Level is above 94.48m)")
     
-    # 3. BTRP Alert
-    if btrp_level < 93.85:
-        st.error(f"⚠️ Alert: BTRP level falls below 93.85m. Pumping cannot possible for {hours} hours.")
-    else:
-        st.success(f"BTRP Level is {btrp_level:.3f}m. Pumping is currently possible.")
+    if btrp_lvl < 93.85:
+        st.warning(f"🚫 Pumping cannot be possible for {p_hours} hours. (Level is below 93.85m)")
+    elif btrp_lvl <= 94.48:
+        st.info("Level is in marginal range.")
