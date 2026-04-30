@@ -35,187 +35,59 @@ def get_mcm(level, data_dict):
 def get_rl(mcm, data_dict):
     keys = np.array(list(data_dict.keys()))
     vals = np.array(list(data_dict.values()))
+    # Note: interp expects x-coordinates to be increasing. 
+    # Since MCM increases with Level, this works perfectly.
     return np.interp(mcm, vals, keys)
 
-def get_flow_mcm_hr(head_diff):
-    if head_diff > 3.0: return 0.17
-    elif 2.0 <= head_diff <= 3.0: return 0.15
-    elif 1.5 <= head_diff < 2.0: return 0.12
-    elif head_diff > 0: return 0.08
-    else: return 0.0
+# --- 3. UI LAYOUT ---
+st.set_page_config(page_title="Water Management System", layout="wide")
+st.title("Water Level & Pumping Control")
 
-# --- 3. APP SETUP & MOBILE DARK MODE ---
-st.set_page_config(page_title="BTRP-Rawalje Planner", layout="wide")
+tab1, tab2 = st.tabs(["📊 Simulation Mode", "⚡ Pumping Mode"])
 
-st.markdown("""
-    <style>
-    .stApp { background-color: #0E1117; }
-    div[data-baseweb="input"] { background-color: #1A1C24 !important; border: 1px solid #4B5563 !important; }
-    input { color: #00FFC2 !important; font-weight: bold !important; }
-    div[data-testid="stMetric"] { background-color: #1F2937; border: 2px solid #374151; border-radius: 12px; padding: 15px; }
-    div[data-testid="stMetricValue"] { color: #00D1FF !important; }
-    div[data-testid="stMetricLabel"] { color: #E5E7EB !important; font-size: 1.1rem !important; }
-    .stButton>button { width: 100%; background-color: #3B82F6; color: white; font-weight: bold; border-radius: 10px; height: 3.5em; border: none; }
-    h1 { color: #60A5FA; text-shadow: 2px 2px #000; text-align: center; }
-    h2, h3 { color: #FB923C; }
-    .danger-alert { color: #FF3131; font-weight: bold; border: 2px solid #FF3131; padding: 10px; border-radius: 5px; background: #2D0000; margin-bottom: 10px; }
-    .warning-alert { color: #FFAC1C; font-weight: bold; border: 2px solid #FFAC1C; padding: 10px; border-radius: 5px; background: #2D1B00; margin-bottom: 10px; }
-    .time-card { background-color: #064E3B; border: 2px solid #10B981; color: #D1FAE5; padding: 15px; border-radius: 12px; font-size: 1.2rem; text-align: center; font-weight: bold; }
-    </style>
-    """, unsafe_allow_html=True)
-
-st.title("⚡ BTRP & Rawalje Dispatch Planner")
-
-# --- 4. TOP SECTION: CURRENT READINGS ---
-st.header("📍 Current Shift Data")
-col_curr1, col_curr2 = st.columns(2)
-with col_curr1:
-    curr_u_rl = st.number_input("Current BTRP RL (m)", value=94.450, format="%.3f")
-with col_curr2:
-    curr_l_rl = st.number_input("Current Rawalje RL (m)", value=90.000, format="%.3f")
-
-u_rate = 0.820  # MCM/MUS for BTRP Generation
-l_rate = 9.360  # MCM/MUS for Rawalje Generation
-pump_rate = 0.211 # MCM/hr
-
-st.divider()
-
-# --- 5. TABS ---
-tab1, tab2, tab3 = st.tabs(["🎯 PLANNING MODE", "🔮 SIMULATION MODE", "🚜 PUMPING & BHIRA"])
-
-# --- TAB 1: PLANNING MODE ---
+# --- TAB 1: SIMULATION MODE ---
 with tab1:
-    st.subheader("Plan Generation & Gate Opening Time")
-    p_col1, p_col2 = st.columns(2)
-    with p_col1:
-        u_target_rl = st.number_input("Target BTRP RL (m)", value=94.500, format="%.3f")
-    with p_col2:
-        l_gen_target = st.number_input("Rawalje Generation Plan (MUS)", value=0.080, format="%.3f")
-
-    if st.button("Calculate Shift Plan & Gate Time"):
-        start_u_mcm = get_mcm(curr_u_rl, U_DATA)
-        start_l_mcm = get_mcm(curr_l_rl, L_DATA)
-        target_u_mcm = get_mcm(u_target_rl, U_DATA)
-        
-        demand_l = l_gen_target * l_rate
-        available_l = start_l_mcm - 3.290 
-        transfer_needed = max(0.0, demand_l - available_l)
-        
-        gen_for_level = (target_u_mcm - start_u_mcm) / u_rate
-        gen_for_transfer = transfer_needed / u_rate
-        total_gen_required = gen_for_level + gen_for_transfer
-        
-        u_temp_mcm = start_u_mcm + (total_gen_required * u_rate)
-        l_temp_mcm = start_l_mcm - (l_gen_target * l_rate)
-        
-        minutes_required = 0
-        total_transferred = 0.0
-        
-        while total_transferred < transfer_needed:
-            u_rl_now = get_rl(u_temp_mcm, U_DATA)
-            l_rl_now = get_rl(l_temp_mcm, L_DATA)
-            h_diff = u_rl_now - l_rl_now
-            if h_diff <= 0: break
-            flow_min = get_flow_mcm_hr(h_diff) / 60
-            u_temp_mcm -= flow_min
-            l_temp_mcm += flow_min
-            total_transferred += flow_min
-            minutes_required += 1
-            if minutes_required > 1440: break
-
-        hrs = minutes_required // 60
-        mins = minutes_required % 60
-        st.divider()
-        st.metric("Total generation required", f"{total_gen_required:.3f} Mus")
-        if transfer_needed > 0:
-            st.markdown(f'<div class="time-card">⏱️ INTAKE GATES MUST BE OPEN FOR: {hrs} Hours and {mins} Minutes</div>', unsafe_allow_html=True)
-
-# --- TAB 2: SIMULATION MODE ---
-with tab2:
-    st.subheader("Predictive 'What-If' Simulation")
-    gate_status = st.toggle("Interconnecting Gate Open?", value=False, key="sim_gate")
-    s_col1, s_col2, s_col3 = st.columns(3)
-    with s_col1:
-        sim_u_gen = st.number_input("BTRP Total generation (Mus)", value=0.120, format="%.3f")
-    with s_col2:
-        sim_l_gen = st.number_input("Rawalje PH Generation (Mus)", value=0.050, format="%.3f")
-    with s_col3:
-        sim_hours = st.number_input("Gate Open Time (Hrs)", value=6.0 if gate_status else 0.0, disabled=not gate_status, key="sim_time")
-
-    if st.button("Start Simulation"):
-        u_mcm = get_mcm(curr_u_rl, U_DATA) + (sim_u_gen * u_rate)
-        l_mcm = get_mcm(curr_l_rl, L_DATA) - (sim_l_gen * l_rate)
-        total_moved = 0.0
-        if gate_status and sim_hours > 0:
-            for m in range(int(sim_hours * 60)):
-                u_rl_now = get_rl(u_mcm, U_DATA)
-                l_rl_now = get_rl(l_mcm, L_DATA)
-                h_diff = u_rl_now - l_rl_now
-                if h_diff <= 0: break
-                flow_min = get_flow_mcm_hr(h_diff) / 60
-                u_mcm -= flow_min
-                l_mcm += flow_min
-                total_moved += flow_min
-        
-        final_u_rl = get_rl(u_mcm, U_DATA)
-        final_l_rl = get_rl(l_mcm, L_DATA)
-        st.divider()
-        col_res1, col_res2 = st.columns(2)
-        with col_res1: st.metric("Final BTRP RL", f"{final_u_rl:.3f} m")
-        with col_res2: st.metric("Final Rawalje RL", f"{final_l_rl:.3f} m")
-
-# --- TAB 3: PUMPING OPERATION ---
-with tab3:
-    st.subheader("BTRP Level during Pumping")
-    st.info(f"Pumping Rate Fixed at: {pump_rate} MCM/hr (Discharged Out)")
+    st.header("Rawalje Simulation")
     
-    col_p1, col_p2, col_p3 = st.columns(3)
-    with col_p1:
-        pump_hrs = st.number_input("Pumping Duration (Hrs)", min_value=0.0, value=3.0, step=0.5)
-    with col_p2:
-        bhira_gen = st.number_input("Bhira Generation (Mus)", min_value=0.0, value=0.0, format="%.3f")
-    with col_p3:
-        p_gate_status = st.toggle("Interconnecting Gate Open?", value=False, key="pump_gate")
+    col1, col2 = st.columns(2)
+    with col1:
+        current_rl_r = st.number_input("Current Rawalje Level (m)", value=91.000, format="%.3f")
+        reduction_mcm = st.number_input("Enter Reduction (MCM)", value=0.000, format="%.3f")
+    
+    # Logic
+    start_mcm = get_mcm(current_rl_r, L_DATA)
+    final_mcm = start_mcm - reduction_mcm
+    final_rl_r = get_rl(final_mcm, L_DATA)
+    
+    st.divider()
+    
+    # Calculation Summary
+    st.subheader("Calculation Summary")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Initial Storage", f"{start_mcm:.3f} MCM")
+    c2.metric("Target Reduction", f"{reduction_mcm:.3f} MCM")
+    c3.metric("Final Projected Level", f"{final_rl_r:.3f} m")
+    
+    # Alert for Rawalje
+    if final_rl_r < 90.000:
+        st.error(f"⚠️ **CRITICAL ALERT:** Final Rawalje level ({final_rl_r:.3f}m) falls below the minimum limit of 90.00m!")
 
-    if st.button("Analyze Pumping Effect"):
-        # Initial MCM from current levels
-        u_mcm = get_mcm(curr_u_rl, U_DATA)
-        l_mcm = get_mcm(curr_l_rl, L_DATA)
+# --- TAB 2: PUMPING MODE ---
+with tab2:
+    st.header("BTRP Pumping Operations")
+    
+    btrp_rl = st.number_input("Current BTRP Level (m)", value=94.000, format="%.3f")
+    op_hours = st.number_input("Enter Planned Pumping Hours", min_value=0.0, step=0.5, value=1.0)
+    
+    st.divider()
+    
+    # Alert for BTRP
+    if btrp_rl < 93.850:
+        st.error(f"🚫 **PUMPING HALTED:** BTRP level is {btrp_rl:.3f}m.")
+        st.warning(f"Pumping cannot possible for **{op_hours}** hours.")
+    else:
+        st.success(f"✅ BTRP Level is sufficient ({btrp_rl:.3f}m). Pumping is possible for the requested {op_hours} hours.")
         
-        # Add water from Bhira and subtract pumped water
-        # Bhira inflow (using BTRP rate) - Bhira Gen adds water to BTRP
-        net_btrp_change = (bhira_gen * u_rate) - (pump_hrs * pump_rate)
-        u_mcm += net_btrp_change
-        
-        total_moved = 0.0
-        # If gate is open during pumping, water levels will balance
-        if p_gate_status:
-            # We simulate the balancing over the pumping period (assume pumping is constant)
-            for m in range(int(pump_hrs * 60)):
-                u_rl_now = get_rl(u_mcm, U_DATA)
-                l_rl_now = get_rl(l_mcm, L_DATA)
-                h_diff = u_rl_now - l_rl_now
-                
-                if h_diff <= 0: break
-                
-                flow_min = get_flow_mcm_hr(h_diff) / 60
-                u_mcm -= flow_min
-                l_mcm += flow_min
-                total_moved += flow_min
-
-        final_u_rl = get_rl(u_mcm, U_DATA)
-        final_l_rl = get_rl(l_mcm, L_DATA)
-        
-        st.divider()
-        st.write(f"Total Water Pumped Out: **{pump_hrs * pump_rate:.3f} MCM**")
-        if bhira_gen > 0:
-            st.write(f"Total Water Inflow from Bhira: **{bhira_gen * u_rate:.3f} MCM**")
-            
-        p_res1, p_res2 = st.columns(2)
-        with p_res1:
-            st.metric("New BTRP RL", f"{final_u_rl:.3f} m")
-        with p_res2:
-            st.metric("New Rawalje RL", f"{final_l_rl:.3f} m")
-        
-        if p_gate_status:
-            st.write(f"Water moved to Rawalje via Gate: **{total_moved:.3f} MCM**")
+    # Show corresponding MCM for reference
+    btrp_mcm = get_mcm(btrp_rl, U_DATA)
+    st.info(f"Equivalent BTRP Storage: {btrp_mcm:.3f} MCM")
