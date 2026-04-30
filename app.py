@@ -35,59 +35,44 @@ def get_mcm(level, data_dict):
 def get_rl(mcm, data_dict):
     keys = np.array(list(data_dict.keys()))
     vals = np.array(list(data_dict.values()))
-    # Note: interp expects x-coordinates to be increasing. 
-    # Since MCM increases with Level, this works perfectly.
+    # Standard linear interpolation for reversing Level -> MCM
     return np.interp(mcm, vals, keys)
 
-# --- 3. UI LAYOUT ---
-st.set_page_config(page_title="Water Management System", layout="wide")
-st.title("Water Level & Pumping Control")
+# --- 3. APP INTERFACE ---
+st.title("Water Level Management System")
 
-tab1, tab2 = st.tabs(["📊 Simulation Mode", "⚡ Pumping Mode"])
+tab1, tab2 = st.tabs(["Simulation Mode", "Pumping Mode"])
 
-# --- TAB 1: SIMULATION MODE ---
+# --- SIMULATION MODE TAB ---
 with tab1:
-    st.header("Rawalje Simulation")
+    st.subheader("Rawalje Simulation")
+    raw_level = st.number_input("Enter Current Rawalje Level (m)", value=91.000, format="%.3f")
+    reduction = st.number_input("Enter Reduction (MCM)", value=0.000, format="%.3f")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        current_rl_r = st.number_input("Current Rawalje Level (m)", value=91.000, format="%.3f")
-        reduction_mcm = st.number_input("Enter Reduction (MCM)", value=0.000, format="%.3f")
+    # Core Calculation
+    initial_mcm = get_mcm(raw_level, L_DATA)
+    final_mcm = initial_mcm - reduction
+    final_level = get_rl(final_mcm, L_DATA)
     
-    # Logic
-    start_mcm = get_mcm(current_rl_r, L_DATA)
-    final_mcm = start_mcm - reduction_mcm
-    final_rl_r = get_rl(final_mcm, L_DATA)
+    # 1. Calculation Summary
+    st.write("---")
+    st.write("### Calculation Summary")
+    st.write(f"Initial Storage: **{initial_mcm:.3f} MCM**")
+    st.write(f"Final Storage: **{final_mcm:.3f} MCM**")
+    st.write(f"Final Projected Level: **{final_level:.3f} m**")
     
-    st.divider()
-    
-    # Calculation Summary
-    st.subheader("Calculation Summary")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Initial Storage", f"{start_mcm:.3f} MCM")
-    c2.metric("Target Reduction", f"{reduction_mcm:.3f} MCM")
-    c3.metric("Final Projected Level", f"{final_rl_r:.3f} m")
-    
-    # Alert for Rawalje
-    if final_rl_r < 90.000:
-        st.error(f"⚠️ **CRITICAL ALERT:** Final Rawalje level ({final_rl_r:.3f}m) falls below the minimum limit of 90.00m!")
+    # 2. Rawalje Alert
+    if final_level < 90.00:
+        st.error(f"⚠️ Alert: Final Rawalje level ({final_level:.3f}m) falls below 90.00m")
 
-# --- TAB 2: PUMPING MODE ---
+# --- PUMPING MODE TAB ---
 with tab2:
-    st.header("BTRP Pumping Operations")
+    st.subheader("BTRP Pumping Mode")
+    btrp_level = st.number_input("Enter BTRP Level (m)", value=94.000, format="%.3f")
+    hours = st.number_input("Enter Hours", value=0.0, step=0.1)
     
-    btrp_rl = st.number_input("Current BTRP Level (m)", value=94.000, format="%.3f")
-    op_hours = st.number_input("Enter Planned Pumping Hours", min_value=0.0, step=0.5, value=1.0)
-    
-    st.divider()
-    
-    # Alert for BTRP
-    if btrp_rl < 93.850:
-        st.error(f"🚫 **PUMPING HALTED:** BTRP level is {btrp_rl:.3f}m.")
-        st.warning(f"Pumping cannot possible for **{op_hours}** hours.")
+    # 3. BTRP Alert
+    if btrp_level < 93.85:
+        st.error(f"⚠️ Alert: BTRP level falls below 93.85m. Pumping cannot possible for {hours} hours.")
     else:
-        st.success(f"✅ BTRP Level is sufficient ({btrp_rl:.3f}m). Pumping is possible for the requested {op_hours} hours.")
-        
-    # Show corresponding MCM for reference
-    btrp_mcm = get_mcm(btrp_rl, U_DATA)
-    st.info(f"Equivalent BTRP Storage: {btrp_mcm:.3f} MCM")
+        st.success(f"BTRP Level is {btrp_level:.3f}m. Pumping is currently possible.")
